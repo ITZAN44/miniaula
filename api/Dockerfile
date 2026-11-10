@@ -4,4 +4,5 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY . .
 EXPOSE 3000
-CMD ["npm", "start"]
+ENV NODE_ENV=production
+CMD ["sh", "-c", "npm run migrate && npm start"]
