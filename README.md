@@ -30,6 +30,12 @@ Con los contenedores en ejecución, ejecuta en tu terminal:
 docker compose exec api npm run seed
 ```
 
+> **Nota:** Si ejecutas el seed más de una vez dará error por claves duplicadas. Para reiniciar los datos, ejecuta primero `seed:undo`:
+> ```bash
+> docker compose exec api npm run seed:undo
+> docker compose exec api npm run seed
+> ```
+
 ### Usuarios de prueba cargados en el Seed
 
 Todos los usuarios tienen la contraseña: `password123`
