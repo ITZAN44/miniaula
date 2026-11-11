@@ -1,15 +1,13 @@
 const bcrypt = require('bcryptjs');
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    // Contraseña compartida para todos los usuarios de prueba: "password123"
-    // Usamos bcryptjs con costo 10 tal como se definio en el plan del proyecto
+  async up(queryInterface) {
+    // Contraseña compartida para los usuarios de prueba: "password123"
+    // Hash con bcryptjs (costo 10) para permitir el inicio de sesion
     const passwordHash = bcrypt.hashSync('password123', 10);
     const ahora = new Date();
 
-    // ==========================================
-    // 1. USUARIOS (2 instructores y 3 estudiantes)
-    // ==========================================
+    // Usuarios iniciales: 2 instructores y 3 estudiantes
     await queryInterface.bulkInsert('usuarios', [
       {
         id: 1,
@@ -53,9 +51,7 @@ module.exports = {
       },
     ]);
 
-    // ==========================================
-    // 2. CURSOS (3 cursos en estado publicado)
-    // ==========================================
+    // Cursos iniciales en estado publicado
     await queryInterface.bulkInsert('cursos', [
       {
         id: 1,
@@ -89,14 +85,12 @@ module.exports = {
       },
     ]);
 
-    // ==========================================
-    // 3. LECCIONES (5 lecciones por cada curso)
-    // ==========================================
+    // Lecciones del sistema (5 por cada curso)
     await queryInterface.bulkInsert('lecciones', [
       // Curso 1: Node.js desde cero (4 contenido + 1 cuestionario)
       {
         id: 1,
-        titulo: '1. Introducción a Node.js',
+        titulo: 'Introducción a Node.js',
         tipo: 'contenido',
         contenido: 'Node.js es un entorno de ejecución para JavaScript construido con el motor V8 de Chrome. Permite ejecutar JavaScript fuera del navegador, ideal para construir servidores y herramientas de desarrollo.',
         videoUrl: 'https://www.youtube.com/watch?v=yB4n_K7dZV8',
@@ -106,7 +100,7 @@ module.exports = {
       },
       {
         id: 2,
-        titulo: '2. Instalar Node.js y npm',
+        titulo: 'Instalar Node.js y npm',
         tipo: 'contenido',
         contenido: 'Revisaremos la instalación oficial de Node.js mediante LTS y el uso básico del gestor de paquetes npm para iniciar un nuevo proyecto con npm init.',
         videoUrl: 'https://www.youtube.com/watch?v=yB4n_K7dZV8',
@@ -116,7 +110,7 @@ module.exports = {
       },
       {
         id: 3,
-        titulo: '3. Express básico',
+        titulo: 'Express básico',
         tipo: 'contenido',
         contenido: 'Express es el framework web minimalista más popular de Node.js. Aprenderemos a crear rutas GET, POST, usar middlewares y enviar respuestas JSON.',
         videoUrl: 'https://www.youtube.com/watch?v=yB4n_K7dZV8',
@@ -126,7 +120,7 @@ module.exports = {
       },
       {
         id: 4,
-        titulo: '4. Cuestionario 1: Express básico',
+        titulo: 'Cuestionario de Express básico',
         tipo: 'cuestionario',
         contenido: null,
         videoUrl: null,
@@ -136,7 +130,7 @@ module.exports = {
       },
       {
         id: 5,
-        titulo: '5. APIs REST',
+        titulo: 'APIs REST',
         tipo: 'contenido',
         contenido: 'Diseño de endpoints siguiendo las convenciones REST: uso de sustantivos en plural, códigos de estado HTTP correctos (200, 201, 404, 500) y separación de responsabilidades.',
         videoUrl: 'https://www.youtube.com/watch?v=yB4n_K7dZV8',
@@ -148,7 +142,7 @@ module.exports = {
       // Curso 2: Diseño UI con Figma (4 contenido + 1 cuestionario)
       {
         id: 6,
-        titulo: '1. Principios del diseño de interfaces',
+        titulo: 'Principios del diseño de interfaces',
         tipo: 'contenido',
         contenido: 'Aprenderemos los conceptos fundamentales de jerarquía visual, contraste, alineación y consistencia en el diseño de interfaces de usuario.',
         videoUrl: 'https://www.youtube.com/watch?v=FTFaQWZBqQ8',
@@ -158,7 +152,7 @@ module.exports = {
       },
       {
         id: 7,
-        titulo: '2. Marcos y formas en Figma',
+        titulo: 'Marcos y formas en Figma',
         tipo: 'contenido',
         contenido: 'Uso de Frames, jerarquía de capas, grupos y aplicación de sistemas de cuadrícula (grids) para organizar la pantalla.',
         videoUrl: 'https://www.youtube.com/watch?v=FTFaQWZBqQ8',
@@ -168,7 +162,7 @@ module.exports = {
       },
       {
         id: 8,
-        titulo: '3. Auto Layout fluido',
+        titulo: 'Auto Layout fluido',
         tipo: 'contenido',
         contenido: 'El motor de Auto Layout permite crear componentes que se adaptan automáticamente al tamaño del contenido y a pantallas responsivas.',
         videoUrl: 'https://www.youtube.com/watch?v=FTFaQWZBqQ8',
@@ -178,7 +172,7 @@ module.exports = {
       },
       {
         id: 9,
-        titulo: '4. Cuestionario 1: Auto Layout',
+        titulo: 'Cuestionario de Auto Layout',
         tipo: 'cuestionario',
         contenido: null,
         videoUrl: null,
@@ -188,7 +182,7 @@ module.exports = {
       },
       {
         id: 10,
-        titulo: '5. Componentes y variantes',
+        titulo: 'Componentes y variantes',
         tipo: 'contenido',
         contenido: 'Creación de componentes reutilizables como botones y tarjetas, y definición de variantes para estados hover, activo y deshabilitado.',
         videoUrl: 'https://www.youtube.com/watch?v=FTFaQWZBqQ8',
@@ -200,7 +194,7 @@ module.exports = {
       // Curso 3: Inglés para devs (4 contenido + 1 cuestionario)
       {
         id: 11,
-        titulo: '1. Vocabulario técnico esencial',
+        titulo: 'Vocabulario técnico esencial',
         tipo: 'contenido',
         contenido: 'Palabras y verbos más comunes en desarrollo: deploy, merge, pull request, bug, refactor, benchmark y staging.',
         videoUrl: 'https://www.youtube.com/watch?v=4p_1M4b9yqk',
@@ -210,7 +204,7 @@ module.exports = {
       },
       {
         id: 12,
-        titulo: '2. Lectura de documentación en inglés',
+        titulo: 'Lectura de documentación en inglés',
         tipo: 'contenido',
         contenido: 'Estrategias para comprender rápidamente la documentación oficial de librerías, mensajes de error y respuestas en foros técnicos.',
         videoUrl: 'https://www.youtube.com/watch?v=4p_1M4b9yqk',
@@ -220,7 +214,7 @@ module.exports = {
       },
       {
         id: 13,
-        titulo: '3. Redacción de Pull Requests y commits',
+        titulo: 'Redacción de Pull Requests y commits',
         tipo: 'contenido',
         contenido: 'Cómo escribir resúmenes claros en inglés para que compañeros internacionales entiendan los cambios introducidos.',
         videoUrl: 'https://www.youtube.com/watch?v=4p_1M4b9yqk',
@@ -230,7 +224,7 @@ module.exports = {
       },
       {
         id: 14,
-        titulo: '4. Cuestionario 1: Términos técnicos',
+        titulo: 'Cuestionario de términos técnicos',
         tipo: 'cuestionario',
         contenido: null,
         videoUrl: null,
@@ -240,7 +234,7 @@ module.exports = {
       },
       {
         id: 15,
-        titulo: '5. Participación en Daily Standups',
+        titulo: 'Participación en Daily Standups',
         tipo: 'contenido',
         contenido: 'Frases clave para comunicar en qué trabajaste ayer, en qué trabajarás hoy y si tienes algún bloqueo (blocker).',
         videoUrl: 'https://www.youtube.com/watch?v=4p_1M4b9yqk',
@@ -250,9 +244,7 @@ module.exports = {
       },
     ]);
 
-    // ==========================================
-    // 4. PREGUNTAS PARA LOS CUESTIONARIOS
-    // ==========================================
+    // Preguntas para los cuestionarios
     await queryInterface.bulkInsert('preguntas', [
       // Preguntas para el Cuestionario del Curso 1 (Leccion id 4)
       {
@@ -319,7 +311,7 @@ module.exports = {
     ]);
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     // Revertimos en orden inverso para respetar las restricciones de llaves foraneas
     await queryInterface.bulkDelete('preguntas', null, {});
     await queryInterface.bulkDelete('lecciones', null, {});
