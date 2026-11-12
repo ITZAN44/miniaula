@@ -22,6 +22,32 @@ docker compose up --build
 - Web: http://localhost:8080
 - API: http://localhost:3001/api
 
+## Cómo cargar datos de prueba (Seed)
+
+Con los contenedores en ejecución, ejecuta en tu terminal:
+
+```bash
+docker compose exec api npm run seed
+```
+
+> **Nota:** Si ejecutas el seed más de una vez dará error por claves duplicadas. Para reiniciar los datos, ejecuta primero `seed:undo`:
+> ```bash
+> docker compose exec api npm run seed:undo
+> docker compose exec api npm run seed
+> ```
+
+### Usuarios de prueba cargados en el Seed
+
+Todos los usuarios tienen la contraseña: `password123`
+
+| Rol | Nombre | Email |
+|---|---|---|
+| Instructor | Ana Pérez | `ana.perez@miniaula.com` |
+| Instructor | Luis Rojas | `luis.rojas@miniaula.com` |
+| Estudiante | Juan Pérez | `juan.perez@miniaula.com` |
+| Estudiante | María Gómez | `maria.gomez@miniaula.com` |
+| Estudiante | Lucas Fernández | `lucas.fernandez@miniaula.com` |
+
 ## Estructura
 
 ```
