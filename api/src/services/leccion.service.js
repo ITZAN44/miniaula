@@ -1,17 +1,14 @@
-import { Leccion, Pregunta } from '../models/index.js';
+import { Leccion } from '../models/index.js';
+import AppError from '../errors/AppError.js';
 
-// Crea una leccion asignandole el siguiente numero de orden disponible
 export const crearLeccion = async (cursoId, datos) => {
-  // Buscamos la ultima leccion del curso para calcular el nuevo orden
   const ultimaLeccion = await Leccion.findOne({
     where: { cursoId },
     order: [['orden', 'DESC']],
   });
 
   const siguienteOrden = ultimaLeccion ? ultimaLeccion.orden + 1 : 1;
-
-  // Si es un cuestionario y no definieron nota minima, asignamos 70 por defecto
-  const notaMinima = datos.tipo === 'cuestionario' ? (datos.notaMinima || 70) : null;
+  const notaMinima = datos.tipo === 'cuestionario' ? datos.notaMinima : null;
 
   return await Leccion.create({
     ...datos,
@@ -21,31 +18,35 @@ export const crearLeccion = async (cursoId, datos) => {
   });
 };
 
-// Actualiza los datos de una leccion existente
 export const actualizarLeccion = async (leccion, datos) => {
   return await leccion.update(datos);
 };
 
-// Elimina una leccion del curso
 export const eliminarLeccion = async (leccion) => {
   await leccion.destroy();
 };
 
-// Actualiza el orden de las lecciones dentro de un curso
-export const reordenarLecciones = async (cursoId, listaOrden) => {
-  // Recorremos la lista y actualizamos el campo orden de cada leccion
-  for (let i = 0; i < listaOrden.length; i++) {
-    const item = listaOrden[i];
-    const id = typeof item === 'object' ? item.id : item;
-    const nuevoOrden = typeof item === 'object' ? item.orden : i + 1;
-
-    await Leccion.update(
-      { orden: nuevoOrden },
-      { where: { id, cursoId } }
-    );
+export const reordenarLecciones = async (cursoId, listaIds) => {
+  const unicos = new Set(listaIds);
+  if (unicos.size !== listaIds.length) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'La lista de orden contiene lecciones duplicadas');
   }
 
-  // Devolvemos las lecciones ya ordenadas
+  const leccionesCurso = await Leccion.findAll({
+    where: { cursoId },
+    attributes: ['id'],
+  });
+
+  const idsCurso = new Set(leccionesCurso.map((l) => l.id));
+
+  if (listaIds.length !== leccionesCurso.length || !listaIds.every((id) => idsCurso.has(id))) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Debes enviar exactamente todas las lecciones del curso para reordenar');
+  }
+
+  for (let i = 0; i < listaIds.length; i++) {
+    await Leccion.update({ orden: i + 1 }, { where: { id: listaIds[i], cursoId } });
+  }
+
   return await Leccion.findAll({
     where: { cursoId },
     order: [['orden', 'ASC']],
