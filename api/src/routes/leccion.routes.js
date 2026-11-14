@@ -9,19 +9,11 @@ import * as preguntaController from '../controllers/pregunta.controller.js';
 
 const router = Router();
 
-// Todas las operaciones directas sobre lecciones requieren instructor autenticado
-router.use(autenticar, autorizar('instructor'));
+const soloInstructor = [autenticar, autorizar('instructor')];
 
-// Modificar una leccion existente (solo instructor dueño del curso)
-router.put('/:id', esDuenioLeccion, validate({ body: editarLeccionSchema }), leccionController.actualizarLeccion);
-
-// Eliminar una leccion (solo instructor dueño del curso)
-router.delete('/:id', esDuenioLeccion, leccionController.eliminarLeccion);
-
-// Listar preguntas de un cuestionario (solo instructor dueño del curso)
-router.get('/:id/preguntas', esDuenioLeccion, preguntaController.listarPreguntasDeLeccion);
-
-// Crear una pregunta en un cuestionario (solo instructor dueño del curso)
-router.post('/:id/preguntas', esDuenioLeccion, validate({ body: crearPreguntaSchema }), preguntaController.crearPregunta);
+router.put('/:id', ...soloInstructor, esDuenioLeccion, validate({ body: editarLeccionSchema }), leccionController.actualizarLeccion);
+router.delete('/:id', ...soloInstructor, esDuenioLeccion, leccionController.eliminarLeccion);
+router.get('/:id/preguntas', ...soloInstructor, esDuenioLeccion, preguntaController.listarPreguntasDeLeccion);
+router.post('/:id/preguntas', ...soloInstructor, esDuenioLeccion, validate({ body: crearPreguntaSchema }), preguntaController.crearPregunta);
 
 export default router;
