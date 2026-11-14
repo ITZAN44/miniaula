@@ -9,26 +9,13 @@ import * as leccionController from '../controllers/leccion.controller.js';
 
 const router = Router();
 
-// Todas las operaciones de administracion de cursos requieren estar autenticado como instructor
-router.use(autenticar, autorizar('instructor'));
+const soloInstructor = [autenticar, autorizar('instructor')];
 
-// Crear un nuevo curso en borrador
-router.post('/', validate({ body: crearCursoSchema }), cursoController.crearCurso);
-
-// Modificar datos del curso (solo el instructor dueño)
-router.put('/:id', esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
-
-// Cambiar el estado a publicado o archivado (solo el instructor dueño)
-router.patch('/:id/estado', esDuenioCurso, validate({ body: estadoCursoSchema }), cursoController.cambiarEstadoCurso);
-
-// Eliminar curso si no tiene inscritos (solo el instructor dueño)
-router.delete('/:id', esDuenioCurso, cursoController.eliminarCurso);
-
-// Agregar una nueva leccion al curso (solo el instructor dueño)
-router.post('/:id/lecciones', esDuenioCurso, validate({ body: crearLeccionSchema }), leccionController.crearLeccion);
-
-// Reordenar las lecciones del curso (solo el instructor dueño)
-router.patch('/:id/lecciones/orden', esDuenioCurso, validate({ body: reordenarLeccionesSchema }), leccionController.reordenarLecciones);
+router.post('/', ...soloInstructor, validate({ body: crearCursoSchema }), cursoController.crearCurso);
+router.put('/:id', ...soloInstructor, esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
+router.patch('/:id/estado', ...soloInstructor, esDuenioCurso, validate({ body: estadoCursoSchema }), cursoController.cambiarEstadoCurso);
+router.delete('/:id', ...soloInstructor, esDuenioCurso, cursoController.eliminarCurso);
+router.post('/:id/lecciones', ...soloInstructor, esDuenioCurso, validate({ body: crearLeccionSchema }), leccionController.crearLeccion);
+router.patch('/:id/lecciones/orden', ...soloInstructor, esDuenioCurso, validate({ body: reordenarLeccionesSchema }), leccionController.reordenarLecciones);
 
 export default router;
-
