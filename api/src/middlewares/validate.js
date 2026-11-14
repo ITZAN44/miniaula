@@ -13,7 +13,7 @@ const validate = (esquemas) => (req, res, next) => {
     const resultado = esquemas[parte].safeParse(req[parte]);
     if (!resultado.success) {
       const details = resultado.error.issues.map((issue) => ({
-        campo: `${parte}.${issue.path.join('.')}`,
+        campo: [parte, ...issue.path].join('.'),
         mensaje: issue.message,
       }));
       return next(new AppError(400, 'VALIDATION_ERROR', 'Los datos enviados no son válidos', details));
