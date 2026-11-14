@@ -7,13 +7,9 @@ import * as preguntaController from '../controllers/pregunta.controller.js';
 
 const router = Router();
 
-// Todas las operaciones directas sobre preguntas requieren instructor autenticado
-router.use(autenticar, autorizar('instructor'));
+const soloInstructor = [autenticar, autorizar('instructor')];
 
-// Modificar una pregunta existente (solo instructor dueño del curso)
-router.put('/:id', esDuenioPregunta, validate({ body: editarPreguntaSchema }), preguntaController.actualizarPregunta);
-
-// Eliminar una pregunta (solo instructor dueño del curso)
-router.delete('/:id', esDuenioPregunta, preguntaController.eliminarPregunta);
+router.put('/:id', ...soloInstructor, esDuenioPregunta, validate({ body: editarPreguntaSchema }), preguntaController.actualizarPregunta);
+router.delete('/:id', ...soloInstructor, esDuenioPregunta, preguntaController.eliminarPregunta);
 
 export default router;
