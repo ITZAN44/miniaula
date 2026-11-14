@@ -3,7 +3,9 @@ import { autenticar, autorizar } from '../middlewares/auth.js';
 import { esDuenioCurso } from '../middlewares/esDuenio.js';
 import validate from '../middlewares/validate.js';
 import { crearCursoSchema, editarCursoSchema, estadoCursoSchema } from '../schemas/curso.schemas.js';
+import { crearLeccionSchema, reordenarLeccionesSchema } from '../schemas/leccion.schemas.js';
 import * as cursoController from '../controllers/curso.controller.js';
+import * as leccionController from '../controllers/leccion.controller.js';
 
 const router = Router();
 
@@ -22,4 +24,11 @@ router.patch('/:id/estado', esDuenioCurso, validate({ body: estadoCursoSchema })
 // Eliminar curso si no tiene inscritos (solo el instructor dueño)
 router.delete('/:id', esDuenioCurso, cursoController.eliminarCurso);
 
+// Agregar una nueva leccion al curso (solo el instructor dueño)
+router.post('/:id/lecciones', esDuenioCurso, validate({ body: crearLeccionSchema }), leccionController.crearLeccion);
+
+// Reordenar las lecciones del curso (solo el instructor dueño)
+router.patch('/:id/lecciones/orden', esDuenioCurso, validate({ body: reordenarLeccionesSchema }), leccionController.reordenarLecciones);
+
 export default router;
+
