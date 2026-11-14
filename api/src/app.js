@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes.js';
 import usuarioRoutes from './routes/usuario.routes.js';
 import cursoRoutes from './routes/curso.routes.js';
 import leccionRoutes from './routes/leccion.routes.js';
+import preguntaRoutes from './routes/pregunta.routes.js';
 import instructorRoutes from './routes/instructor.routes.js';
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errorHandler.js';
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usuarioRoutes);
 app.use('/api/cursos', cursoRoutes);
 app.use('/api/lecciones', leccionRoutes);
+app.use('/api/preguntas', preguntaRoutes);
 app.use('/api/instructor', instructorRoutes);
 
 app.use(rutaNoEncontrada);
