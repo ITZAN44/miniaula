@@ -34,11 +34,7 @@ const Registro = () => {
       await iniciarSesion({ email: datos.email, password: datos.password });
       navigate('/', { replace: true });
     } catch (error) {
-      if (error.response?.status === 409) {
-        setError('email', { message: 'Ya existe una cuenta con este email' });
-        return;
-      }
-      setErrorGeneral(aplicarErroresApi(error, setError));
+      setErrorGeneral(aplicarErroresApi(error, setError, { duplicado: 'email' }));
     }
   };
 
