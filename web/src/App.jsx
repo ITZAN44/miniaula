@@ -1,9 +1,9 @@
-function App() {
+const App = () => {
   return (
-    <main>
-      <h1>MiniAula</h1>
+    <main className="p-6">
+      <h1 className="text-2xl font-semibold text-indigo-600">MiniAula</h1>
     </main>
-  )
-}
+  );
+};
 
-export default App
+export default App;
