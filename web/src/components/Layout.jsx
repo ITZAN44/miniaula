@@ -20,6 +20,11 @@ const Layout = () => {
           </Link>
           {usuario ? (
             <div className="flex items-center gap-4 text-sm">
+              {usuario.rol === 'instructor' && (
+                <Link to="/instructor/cursos" className="text-slate-600 hover:text-indigo-600">
+                  Mis cursos
+                </Link>
+              )}
               <Link to="/perfil" className="text-slate-600 hover:text-indigo-600">
                 {usuario.nombre}
               </Link>
