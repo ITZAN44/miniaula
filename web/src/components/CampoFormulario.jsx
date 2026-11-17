@@ -1,6 +1,6 @@
 const ESTILO = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15';
 
-const CampoFormulario = ({ id, etiqueta, error, opciones, ...props }) => {
+const CampoFormulario = ({ id, etiqueta, error, opciones, filas, ...props }) => {
   return (
     <div className="space-y-1">
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
@@ -14,6 +14,8 @@ const CampoFormulario = ({ id, etiqueta, error, opciones, ...props }) => {
             </option>
           ))}
         </select>
+      ) : filas ? (
+        <textarea id={id} rows={filas} className={ESTILO} aria-invalid={Boolean(error)} {...props} />
       ) : (
         <input id={id} className={ESTILO} aria-invalid={Boolean(error)} {...props} />
       )}
