@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import useFetch from '../../hooks/useFetch.js';
 import {
   listarPreguntas,
   crearPregunta,
@@ -14,9 +15,8 @@ import Cargando from '../../components/Cargando.jsx';
 
 const OPCIONES_INICIALES = ['', '', ''];
 
-const EditorPreguntas = ({ leccionId }) => {
-  const [preguntas, setPreguntas] = useState([]);
-  const [cargando, setCargando] = useState(true);
+const ContenidoPreguntas = ({ leccionId, preguntasIniciales }) => {
+  const [preguntas, setPreguntas] = useState(preguntasIniciales);
   const [error, setError] = useState('');
 
   const [editandoId, setEditandoId] = useState(null);
@@ -24,23 +24,6 @@ const EditorPreguntas = ({ leccionId }) => {
   const [opciones, setOpciones] = useState(OPCIONES_INICIALES);
   const [indiceCorrecto, setIndiceCorrecto] = useState(0);
   const [guardando, setGuardando] = useState(false);
-
-  const cargar = useCallback(async () => {
-    setCargando(true);
-    setError('');
-    try {
-      const lista = await listarPreguntas(leccionId);
-      setPreguntas(lista);
-    } catch (err) {
-      setError(mensajeDeError(err));
-    } finally {
-      setCargando(false);
-    }
-  }, [leccionId]);
-
-  useEffect(() => {
-    cargar();
-  }, [cargar]);
 
   const limpiarFormulario = () => {
     setEditandoId(null);
@@ -119,8 +102,6 @@ const EditorPreguntas = ({ leccionId }) => {
       setError(mensajeDeError(err));
     }
   };
-
-  if (cargando) return <Cargando />;
 
   return (
     <div className="mt-6 space-y-5 border-t border-slate-200 pt-5">
@@ -235,6 +216,16 @@ const EditorPreguntas = ({ leccionId }) => {
       </form>
     </div>
   );
+};
+
+const EditorPreguntas = ({ leccionId }) => {
+  const cargar = useCallback(() => listarPreguntas(leccionId), [leccionId]);
+  const { datos: preguntas, cargando, error } = useFetch(cargar);
+
+  if (cargando) return <Cargando />;
+  if (error) return <Alerta>{error}</Alerta>;
+
+  return <ContenidoPreguntas key={leccionId} leccionId={leccionId} preguntasIniciales={preguntas ?? []} />;
 };
 
 export default EditorPreguntas;
