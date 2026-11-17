@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { crearLeccion, actualizarLeccion } from '../../api/instructor.service.js';
 import { aplicarErroresApi } from '../../api/errores.js';
@@ -21,7 +21,7 @@ const EditorLeccion = ({ cursoId, leccionInicial, alGuardar, alCancelar }) => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setError,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -35,7 +35,7 @@ const EditorLeccion = ({ cursoId, leccionInicial, alGuardar, alCancelar }) => {
     },
   });
 
-  const tipoSeleccionado = watch('tipo');
+  const tipoSeleccionado = useWatch({ control, name: 'tipo' });
 
   const enviar = async (datos) => {
     setMensaje(null);
