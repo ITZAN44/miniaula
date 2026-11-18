@@ -4,10 +4,8 @@ import * as cursoController from '../controllers/curso.controller.js';
 
 const router = Router();
 
-// Todas las rutas de instructor requieren sesion activa y rol instructor
-router.use(autenticar, autorizar('instructor'));
+const soloInstructor = [autenticar, autorizar('instructor')];
 
-// Listado de cursos propios creados por el instructor
-router.get('/cursos', cursoController.listarCursosInstructor);
+router.get('/cursos', ...soloInstructor, cursoController.listarCursosInstructor);
 
 export default router;
