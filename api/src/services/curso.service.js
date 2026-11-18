@@ -4,8 +4,11 @@ import AppError from '../errors/AppError.js';
 export const listarCursosInstructor = async (instructorId) => {
   return await Curso.findAll({
     where: { instructorId },
-    include: [{ model: Leccion, as: 'lecciones', attributes: ['id', 'titulo', 'tipo', 'orden'] }],
-    order: [['creadoEn', 'DESC']],
+    include: [{ model: Leccion, as: 'lecciones' }],
+    order: [
+      ['creadoEn', 'DESC'],
+      [{ model: Leccion, as: 'lecciones' }, 'orden', 'ASC'],
+    ],
   });
 };
 
