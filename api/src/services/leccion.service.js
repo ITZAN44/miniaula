@@ -19,6 +19,10 @@ export const crearLeccion = async (cursoId, datos) => {
 };
 
 export const actualizarLeccion = async (leccion, datos) => {
+  if (leccion.tipo === 'cuestionario' && datos.notaMinima === null) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'La nota mínima es obligatoria para cuestionarios');
+  }
+
   return await leccion.update(datos);
 };
 
