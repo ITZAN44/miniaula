@@ -26,12 +26,13 @@ const EditorLeccion = ({ cursoId, leccionInicial, alGuardar, alCancelar }) => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(leccionSchema),
+    shouldUnregister: true,
     defaultValues: {
       titulo: leccionInicial?.titulo ?? '',
       tipo: leccionInicial?.tipo ?? 'contenido',
       contenido: leccionInicial?.contenido ?? '',
       videoUrl: leccionInicial?.videoUrl ?? '',
-      notaMinima: leccionInicial?.notaMinima ?? 70,
+      notaMinima: leccionInicial?.notaMinima ?? '',
     },
   });
 
