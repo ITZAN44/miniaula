@@ -47,7 +47,7 @@ export const esDuenioLeccion = async (req, res, next) => {
 export const esDuenioPregunta = async (req, res, next) => {
   const preguntaId = req.params.id;
 
-  const pregunta = await Pregunta.findByPk(preguntaId, {
+  const pregunta = await Pregunta.scope('conRespuesta').findByPk(preguntaId, {
     include: [
       {
         model: Leccion,
