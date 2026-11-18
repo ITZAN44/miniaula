@@ -24,7 +24,6 @@ export const actualizarLeccion = (id, datos) =>
 export const eliminarLeccion = (id) =>
   cliente.delete(`/lecciones/${id}`);
 
-// Envia la lista ordenada de ids de las lecciones del curso
 export const reordenarLecciones = (cursoId, orden) =>
   cliente.patch(`/cursos/${cursoId}/lecciones/orden`, { orden }).then((respuesta) => respuesta.data);
 
