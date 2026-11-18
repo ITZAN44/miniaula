@@ -37,7 +37,7 @@ const MisCursosInstructor = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(cursoSchema),
-    defaultValues: { titulo: '', categoria: 'Programación', nivel: 'basico', descripcion: '' },
+    defaultValues: { titulo: '', categoria: '', nivel: 'basico', descripcion: '' },
   });
 
   const guardarNuevoCurso = async (datos) => {
