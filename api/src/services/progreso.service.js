@@ -1,5 +1,8 @@
+import sequelize from '../config/sequelize.js';
 import { Curso, Leccion, Pregunta, Progreso } from '../models/index.js';
 import AppError from '../errors/AppError.js';
+
+const MAX_INTENTOS = 3;
 
 // Una lección queda bloqueada mientras alguna de las anteriores no esté completada
 export const estadoDelCurso = async (inscripcion) => {
@@ -63,6 +66,7 @@ export const obtenerLeccion = async (inscripcion, leccion) => {
   if (leccion.tipo === 'cuestionario') {
     // El scope por defecto de Pregunta deja afuera indiceCorrecto
     datos.preguntas = await Pregunta.findAll({ where: { leccionId: leccion.id }, order: [['id', 'ASC']] });
+    datos.intentosRestantes = MAX_INTENTOS - intentos;
   }
 
   return datos;
@@ -82,4 +86,71 @@ export const completarLeccion = async (inscripcion, leccion) => {
   await actualizarCompletado(inscripcion);
 
   return progreso;
+};
+
+const calificar = (preguntas, respuestas) => {
+  const elegidas = new Map(respuestas.map((respuesta) => [respuesta.preguntaId, respuesta.opcion]));
+  const respondioTodas =
+    elegidas.size === respuestas.length &&
+    respuestas.length === preguntas.length &&
+    preguntas.every((pregunta) => elegidas.has(pregunta.id));
+
+  if (!respondioTodas) {
+    throw new AppError(400, 'VALIDATION_ERROR', 'Debes responder cada pregunta del cuestionario una sola vez');
+  }
+
+  const correctas = preguntas.filter((pregunta) => elegidas.get(pregunta.id) === pregunta.indiceCorrecto).length;
+  return { correctas, nota: Math.round((correctas * 100) / preguntas.length) };
+};
+
+// Se bloquea la inscripción para que dos envíos al mismo tiempo se registren de a uno y no pasen el límite
+const registrarIntento = (inscripcion, leccion, nota, aprobado) =>
+  sequelize.transaction(async (transaction) => {
+    await inscripcion.reload({ lock: transaction.LOCK.UPDATE, transaction });
+    const [progreso] = await Progreso.findOrCreate({
+      where: { inscripcionId: inscripcion.id, leccionId: leccion.id },
+      transaction,
+    });
+
+    if (progreso.intentos >= MAX_INTENTOS) {
+      throw new AppError(422, 'UNPROCESSABLE_ENTITY', `Ya usaste los ${MAX_INTENTOS} intentos de este cuestionario`);
+    }
+
+    return await progreso.update(
+      {
+        intentos: progreso.intentos + 1,
+        mejorNota: Math.max(progreso.mejorNota ?? 0, nota),
+        completada: progreso.completada || aprobado,
+      },
+      { transaction },
+    );
+  });
+
+export const rendirCuestionario = async (inscripcion, leccion, respuestas) => {
+  if (leccion.tipo !== 'cuestionario') {
+    throw new AppError(422, 'UNPROCESSABLE_ENTITY', 'Solo se pueden rendir lecciones de tipo cuestionario');
+  }
+
+  await verificarDesbloqueada(inscripcion, leccion.id);
+
+  const preguntas = await Pregunta.scope('conRespuesta').findAll({ where: { leccionId: leccion.id } });
+  if (preguntas.length === 0) {
+    throw new AppError(422, 'UNPROCESSABLE_ENTITY', 'El cuestionario todavía no tiene preguntas');
+  }
+
+  const { correctas, nota } = calificar(preguntas, respuestas);
+  const aprobado = nota >= leccion.notaMinima;
+  const progreso = await registrarIntento(inscripcion, leccion, nota, aprobado);
+  await actualizarCompletado(inscripcion);
+
+  return {
+    nota,
+    aprobado,
+    notaMinima: leccion.notaMinima,
+    correctas,
+    total: preguntas.length,
+    mejorNota: progreso.mejorNota,
+    intentos: progreso.intentos,
+    intentosRestantes: MAX_INTENTOS - progreso.intentos,
+  };
 };

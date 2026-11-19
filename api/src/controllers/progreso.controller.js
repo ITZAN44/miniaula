@@ -14,3 +14,8 @@ export const completarLeccion = async (req, res) => {
   const progreso = await progresoService.completarLeccion(req.inscripcion, req.leccion);
   res.json(progreso);
 };
+
+export const rendirCuestionario = async (req, res) => {
+  const resultado = await progresoService.rendirCuestionario(req.inscripcion, req.leccion, req.body.respuestas);
+  res.status(201).json(resultado);
+};
