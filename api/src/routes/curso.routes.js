@@ -10,6 +10,8 @@ import { catalogoQuerySchema } from '../schemas/catalogo.schemas.js';
 import { idParamSchema } from '../schemas/comun.schemas.js';
 import * as catalogoController from '../controllers/catalogo.controller.js';
 import * as inscripcionController from '../controllers/inscripcion.controller.js';
+import * as progresoController from '../controllers/progreso.controller.js';
+import { inscritoEnCurso } from '../middlewares/estaInscrito.js';
 
 const router = Router();
 
@@ -20,6 +22,7 @@ router.get('/', validate({ query: catalogoQuerySchema }), catalogoController.lis
 router.get('/categorias', catalogoController.listarCategorias);
 router.get('/:id', validate({ params: idParamSchema }), catalogoController.obtenerDetalle);
 router.post('/:id/inscripcion', ...soloEstudiante, validate({ params: idParamSchema }), inscripcionController.inscribir);
+router.get('/:id/progreso', ...soloEstudiante, validate({ params: idParamSchema }), inscritoEnCurso, progresoController.obtenerProgreso);
 
 router.post('/', ...soloInstructor, validate({ body: crearCursoSchema }), cursoController.crearCurso);
 router.put('/:id', ...soloInstructor, esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
