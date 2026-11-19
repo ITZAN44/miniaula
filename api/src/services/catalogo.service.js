@@ -23,7 +23,11 @@ export const listarCatalogo = async ({ q, categoria, page, limit }) => {
     where,
     attributes: { include: [cantidadLecciones] },
     include: [instructor],
-    order: [['creadoEn', 'DESC']],
+    // El id desempata los cursos creados en el mismo segundo para que la paginación no repita ninguno
+    order: [
+      ['creadoEn', 'DESC'],
+      ['id', 'DESC'],
+    ],
     limit,
     offset: (page - 1) * limit,
   });
