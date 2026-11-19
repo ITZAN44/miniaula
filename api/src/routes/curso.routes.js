@@ -9,14 +9,17 @@ import * as leccionController from '../controllers/leccion.controller.js';
 import { catalogoQuerySchema } from '../schemas/catalogo.schemas.js';
 import { idParamSchema } from '../schemas/comun.schemas.js';
 import * as catalogoController from '../controllers/catalogo.controller.js';
+import * as inscripcionController from '../controllers/inscripcion.controller.js';
 
 const router = Router();
 
 const soloInstructor = [autenticar, autorizar('instructor')];
+const soloEstudiante = [autenticar, autorizar('estudiante')];
 
 router.get('/', validate({ query: catalogoQuerySchema }), catalogoController.listarCatalogo);
 router.get('/categorias', catalogoController.listarCategorias);
 router.get('/:id', validate({ params: idParamSchema }), catalogoController.obtenerDetalle);
+router.post('/:id/inscripcion', ...soloEstudiante, validate({ params: idParamSchema }), inscripcionController.inscribir);
 
 router.post('/', ...soloInstructor, validate({ body: crearCursoSchema }), cursoController.crearCurso);
 router.put('/:id', ...soloInstructor, esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
