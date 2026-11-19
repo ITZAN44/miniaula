@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import useFetch from '../../hooks/useFetch.js';
 import { listarCatalogo, listarCategorias } from '../../api/estudiante.service.js';
-import { NIVELES } from './niveles.js';
+import { NIVELES, contarLecciones } from './formato.js';
 import Boton from '../../components/Boton.jsx';
 import Alerta from '../../components/Alerta.jsx';
 import Cargando from '../../components/Cargando.jsx';
@@ -19,7 +19,7 @@ const TarjetaCurso = ({ curso }) => {
       <span className="text-xs font-medium uppercase tracking-wide text-indigo-600">{curso.categoria}</span>
       <h2 className="mt-1 font-semibold text-slate-900">{curso.titulo}</h2>
       <p className="mt-1 text-sm text-slate-600">
-        {curso.instructor.nombre} · {curso.cantidadLecciones} {curso.cantidadLecciones === 1 ? 'lección' : 'lecciones'}
+        {curso.instructor.nombre} · {contarLecciones(curso.cantidadLecciones)}
       </p>
       <p className="mt-3 line-clamp-2 flex-1 text-sm text-slate-600">{curso.descripcion}</p>
       <div className="mt-4 flex items-center justify-between gap-2">
