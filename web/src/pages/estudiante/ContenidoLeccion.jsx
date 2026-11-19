@@ -6,6 +6,7 @@ import { mensajeDeError } from '../../api/errores.js';
 import Boton from '../../components/Boton.jsx';
 import Alerta from '../../components/Alerta.jsx';
 import Cargando from '../../components/Cargando.jsx';
+import Cuestionario from './Cuestionario.jsx';
 
 // Convierte un enlace de YouTube en la dirección que se puede incrustar; otros enlaces se muestran como link
 const urlParaIncrustar = (url) => {
@@ -112,7 +113,7 @@ const ContenidoLeccion = ({ leccionId, cursoId, anterior, siguiente, alCompletar
           {leccion.tipo === 'contenido' ? (
             <LeccionContenido leccion={leccion} alCompletar={alCompletar} />
           ) : (
-            <p className="text-sm text-slate-600">Cuestionario con nota mínima de {leccion.notaMinima}.</p>
+            <Cuestionario leccion={leccion} alResponder={alCompletar} />
           )}
         </>
       )}
