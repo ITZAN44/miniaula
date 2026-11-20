@@ -93,6 +93,9 @@ const ContenidoPreguntas = ({ leccionId, preguntasIniciales }) => {
   };
 
   const borrarPregunta = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta pregunta?')) {
+      return;
+    }
     setError('');
     try {
       await eliminarPregunta(id);
