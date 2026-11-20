@@ -20,7 +20,15 @@ const Layout = () => {
           </Link>
           {usuario ? (
             <div className="flex items-center gap-4 text-sm">
-              <Link to="/perfil" className="text-slate-600 hover:text-indigo-600">
+              <Link to="/cursos" className="text-slate-600 hover:text-indigo-600">
+                Cursos
+              </Link>
+              {usuario.rol === 'estudiante' && (
+                <Link to="/mis-cursos" className="text-slate-600 hover:text-indigo-600">
+                  Mis cursos
+                </Link>
+              )}
+              <Link to="/perfil"className="text-slate-600 hover:text-indigo-600">
                 {usuario.nombre}
               </Link>
               <Boton variante="secundario" onClick={salir}>
@@ -29,7 +37,10 @@ const Layout = () => {
             </div>
           ) : (
             <div className="flex items-center gap-4 text-sm">
-              <Link to="/login" className="text-slate-600 hover:text-indigo-600">
+              <Link to="/cursos" className="text-slate-600 hover:text-indigo-600">
+                Cursos
+              </Link>
+              <Link to="/login"className="text-slate-600 hover:text-indigo-600">
                 Iniciar sesión
               </Link>
               <Link to="/registro" className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700">
