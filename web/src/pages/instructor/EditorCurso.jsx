@@ -83,6 +83,9 @@ const VistaEditorCurso = ({ cursoInicial }) => {
   };
 
   const borrarCurso = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este curso? Esta acción no se puede deshacer.')) {
+      return;
+    }
     setMensaje(null);
     try {
       await eliminarCurso(curso.id);
@@ -112,6 +115,9 @@ const VistaEditorCurso = ({ cursoInicial }) => {
   };
 
   const borrarLeccion = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta lección?')) {
+      return;
+    }
     setMensaje(null);
     try {
       await eliminarLeccion(id);
