@@ -132,6 +132,7 @@ const VistaEditorCurso = ({ cursoInicial }) => {
   };
 
   const alGuardarLeccion = (leccionGuardada, esNueva) => {
+    setMensaje(null);
     if (esNueva) {
       setLecciones(ordenarPorCampo([...lecciones, leccionGuardada]));
       setLeccionSeleccionada(leccionGuardada);
