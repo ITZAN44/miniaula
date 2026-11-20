@@ -58,9 +58,6 @@ const EditorLeccion = ({ cursoId, leccionInicial, alGuardar, alCancelar }) => {
         const nueva = await crearLeccion(cursoId, carga);
         setLeccionActual(nueva);
         alGuardar(nueva, true);
-        if (nueva.tipo === 'cuestionario') {
-          setMensaje({ tipo: 'exito', texto: 'Cuestionario creado. Ahora puedes agregar las preguntas abajo.' });
-        }
       }
     } catch (err) {
       const texto = aplicarErroresApi(err, setError);
