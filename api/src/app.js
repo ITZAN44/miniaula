@@ -9,6 +9,7 @@ import cursoRoutes from './routes/curso.routes.js';
 import leccionRoutes from './routes/leccion.routes.js';
 import preguntaRoutes from './routes/pregunta.routes.js';
 import instructorRoutes from './routes/instructor.routes.js';
+import inscripcionRoutes from './routes/inscripcion.routes.js';
 import { rutaNoEncontrada, manejarErrores } from './middlewares/errorHandler.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/cursos', cursoRoutes);
 app.use('/api/lecciones', leccionRoutes);
 app.use('/api/preguntas', preguntaRoutes);
 app.use('/api/instructor', instructorRoutes);
+app.use('/api/inscripciones', inscripcionRoutes);
 
 app.use(rutaNoEncontrada);
 app.use(manejarErrores);
