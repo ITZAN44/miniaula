@@ -133,6 +133,12 @@ const MisCursosInstructor = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Link
+                  to={`/instructor/cursos/${curso.id}/panel`}
+                  className="rounded-lg border border-indigo-600 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                >
+                  Métricas
+                </Link>
+                <Link
                   to={`/instructor/cursos/${curso.id}`}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
                 >
