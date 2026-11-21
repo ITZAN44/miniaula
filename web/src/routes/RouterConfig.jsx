@@ -5,6 +5,9 @@ import NoEncontrada from '../pages/NoEncontrada.jsx';
 import Login from '../pages/auth/Login.jsx';
 import Registro from '../pages/auth/Registro.jsx';
 import Perfil from '../pages/auth/Perfil.jsx';
+import MisCursosInstructor from '../pages/instructor/MisCursosInstructor.jsx';
+import EditorCurso from '../pages/instructor/EditorCurso.jsx';
+import PanelCurso from '../pages/instructor/PanelCurso.jsx';
 import Catalogo from '../pages/estudiante/Catalogo.jsx';
 import DetalleCurso from '../pages/estudiante/DetalleCurso.jsx';
 import Aula from '../pages/estudiante/Aula.jsx';
@@ -41,6 +44,30 @@ const RouterConfig = () => {
           element={
             <RutaProtegida>
               <Perfil />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/instructor/cursos"
+          element={
+            <RutaProtegida roles={['instructor']}>
+              <MisCursosInstructor />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/instructor/cursos/:id"
+          element={
+            <RutaProtegida roles={['instructor']}>
+              <EditorCurso />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/instructor/cursos/:id/panel"
+          element={
+            <RutaProtegida roles={['instructor']}>
+              <PanelCurso />
             </RutaProtegida>
           }
         />

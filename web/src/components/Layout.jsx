@@ -28,7 +28,12 @@ const Layout = () => {
                   Mis cursos
                 </Link>
               )}
-              <Link to="/perfil"className="text-slate-600 hover:text-indigo-600">
+              {usuario.rol === 'instructor' && (
+                <Link to="/instructor/cursos" className="text-slate-600 hover:text-indigo-600">
+                  Mis cursos
+                </Link>
+              )}
+              <Link to="/perfil" className="text-slate-600 hover:text-indigo-600">
                 {usuario.nombre}
               </Link>
               <Boton variante="secundario" onClick={salir}>
