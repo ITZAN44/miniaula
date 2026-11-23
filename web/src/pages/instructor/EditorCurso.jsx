@@ -164,6 +164,12 @@ const VistaEditorCurso = ({ cursoInicial }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`/instructor/cursos/${curso.id}/panel`}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+          >
+            Ver métricas
+          </Link>
           {curso.estado !== 'publicado' && (
             <Boton type="button" onClick={() => cambiarEstado('publicado')}>
               Publicar

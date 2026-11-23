@@ -38,3 +38,6 @@ export const actualizarPregunta = (id, datos) =>
 
 export const eliminarPregunta = (id) =>
   cliente.delete(`/preguntas/${id}`);
+
+export const obtenerResumenCurso = (id) =>
+  cliente.get(`/instructor/cursos/${id}/resumen`).then((respuesta) => respuesta.data);
