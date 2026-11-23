@@ -1,5 +1,6 @@
-import { Curso, Leccion, Inscripcion } from '../models/index.js';
+import { Curso, Leccion, Inscripcion, Progreso } from '../models/index.js';
 import AppError from '../errors/AppError.js';
+import { estadoDelCurso } from './progreso.service.js';
 
 export const listarCursosInstructor = async (instructorId) => {
   return await Curso.findAll({
@@ -44,4 +45,118 @@ export const eliminarCurso = async (curso) => {
   }
 
   await curso.destroy();
+};
+
+export const obtenerResumenCurso = async (curso) => {
+  const lecciones = await Leccion.findAll({
+    where: { cursoId: curso.id },
+    order: [['orden', 'ASC']],
+  });
+
+  const inscripciones = await Inscripcion.findAll({
+    where: { cursoId: curso.id },
+  });
+
+  const totalInscritos = inscripciones.length;
+
+  if (totalInscritos === 0) {
+    return {
+      curso: {
+        id: curso.id,
+        titulo: curso.titulo,
+        categoria: curso.categoria,
+        nivel: curso.nivel,
+        estado: curso.estado,
+      },
+      inscritos: 0,
+      progresoPromedio: 0,
+      notaPromedio: null,
+      leccionDondeSeDetienen: null,
+      lecciones: lecciones.map((leccion) => ({
+        id: leccion.id,
+        titulo: leccion.titulo,
+        tipo: leccion.tipo,
+        orden: leccion.orden,
+        completados: 0,
+        detenidos: 0,
+      })),
+    };
+  }
+
+  const estados = await Promise.all(inscripciones.map((inscripcion) => estadoDelCurso(inscripcion)));
+
+  const sumaPorcentajes = estados.reduce((acumulado, estado) => acumulado + estado.porcentaje, 0);
+  const progresoPromedio = Math.round(sumaPorcentajes / totalInscritos);
+
+  const progresos = await Progreso.findAll({
+    where: {
+      inscripcionId: inscripciones.map((i) => i.id),
+    },
+  });
+
+  const notas = progresos
+    .map((p) => p.mejorNota)
+    .filter((nota) => nota !== null && nota !== undefined);
+
+  const notaPromedio =
+    notas.length > 0 ? Math.round(notas.reduce((acumulado, nota) => acumulado + nota, 0) / notas.length) : null;
+
+  const conteoCompletados = new Map();
+  const conteoDetenidos = new Map();
+
+  for (const estado of estados) {
+    for (const leccion of estado.lecciones) {
+      if (leccion.completada) {
+        conteoCompletados.set(leccion.id, (conteoCompletados.get(leccion.id) || 0) + 1);
+      }
+    }
+
+    if (estado.porcentaje < 100) {
+      const leccionDetenida = estado.lecciones.find((leccion) => !leccion.completada);
+      if (leccionDetenida) {
+        conteoDetenidos.set(leccionDetenida.id, (conteoDetenidos.get(leccionDetenida.id) || 0) + 1);
+      }
+    }
+  }
+
+  let leccionTop = null;
+  let maxDetenidos = 0;
+
+  for (const leccion of lecciones) {
+    const detenidos = conteoDetenidos.get(leccion.id) || 0;
+    if (detenidos > maxDetenidos) {
+      maxDetenidos = detenidos;
+      leccionTop = leccion;
+    }
+  }
+
+  return {
+    curso: {
+      id: curso.id,
+      titulo: curso.titulo,
+      categoria: curso.categoria,
+      nivel: curso.nivel,
+      estado: curso.estado,
+    },
+    inscritos: totalInscritos,
+    progresoPromedio,
+    notaPromedio,
+    leccionDondeSeDetienen: leccionTop
+      ? {
+          id: leccionTop.id,
+          titulo: leccionTop.titulo,
+          orden: leccionTop.orden,
+          tipo: leccionTop.tipo,
+          estudiantesDetenidos: maxDetenidos,
+        }
+      : null,
+    lecciones: lecciones.map((leccion) => ({
+      id: leccion.id,
+      titulo: leccion.titulo,
+      tipo: leccion.tipo,
+      orden: leccion.orden,
+      completados: conteoCompletados.get(leccion.id) || 0,
+      detenidos: conteoDetenidos.get(leccion.id) || 0,
+    })),
+  };
 };
