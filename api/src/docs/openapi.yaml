@@ -16,6 +16,10 @@ tags:
   - name: Salud
   - name: Autenticación
   - name: Perfil
+  - name: Catálogo
+    description: Cursos publicados, se pueden ver sin iniciar sesión
+  - name: Inscripciones
+  - name: Aula
     description: Avance del estudiante, lecciones y cuestionarios
 
 paths:
@@ -138,12 +142,228 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
 
+  /cursos:
+    get:
+      tags: [Catálogo]
+      summary: Listar cursos publicados
+      description: Ordenados del más nuevo al más viejo.
+      parameters:
+        - { name: q, in: query, description: Texto a buscar en el título, schema: { type: string, maxLength: 150 } }
+        - { name: categoria, in: query, schema: { type: string, maxLength: 50 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 9 } }
+      responses:
+        '200':
+          description: Página de cursos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursos:
+                    type: array
+                    items: { $ref: '#/components/schemas/CursoCatalogo' }
+                  paginacion: { $ref: '#/components/schemas/Paginacion' }
+        '400': { $ref: '#/components/responses/Validacion' }
+
+  /cursos/categorias:
+    get:
+      tags: [Catálogo]
+      summary: Listar las categorías de los cursos publicados
+      responses:
+        '200':
+          description: Categorías sin repetir
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+              example: [Diseño, Idiomas, Programación]
+
+  /cursos/{id}:
+    get:
+      tags: [Catálogo]
+      summary: Ver el detalle de un curso publicado
+      description: Incluye el temario, sin el contenido de las lecciones.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Curso con su temario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DetalleCurso' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /cursos/{id}/inscripcion:
+    post:
+      tags: [Inscripciones]
+      summary: Inscribirse en un curso
+      description: Solo para estudiantes y solo en cursos publicados.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '201':
+          description: Inscripción creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Inscripcion' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409':
+          description: El estudiante ya está inscrito
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: CONFLICT, message: Ya estás inscrito en este curso, details: null } }
+
+  /inscripciones/mias:
+    get:
+      tags: [Inscripciones]
+      summary: Listar mis cursos con su avance
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Inscripciones del estudiante actual
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/InscripcionConAvance' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+
+  /cursos/{id}/progreso:
+    get:
+      tags: [Aula]
+      summary: Ver el avance en un curso
+      description: |
+        Una lección queda `bloqueada` mientras alguna de las anteriores no esté completada.
+        Solo puede verlo el estudiante inscrito.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Avance por lección
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Progreso' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+
+  /lecciones/{id}:
+    get:
+      tags: [Aula]
+      summary: Abrir una lección
+      description: |
+        Devuelve el contenido y el avance del estudiante. Si es un cuestionario incluye las preguntas,
+        nunca la respuesta correcta.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lección con el avance del estudiante
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Leccion' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Bloqueada' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /lecciones/{id}/completar:
+    post:
+      tags: [Aula]
+      summary: Marcar una lección de contenido como completada
+      description: Los cuestionarios no se marcan a mano, se completan al aprobarlos.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lección completada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AvanceLeccion' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Bloqueada' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: La lección es un cuestionario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: UNPROCESSABLE_ENTITY, message: Un cuestionario se completa aprobándolo, details: null } }
+
+  /lecciones/{id}/intentos:
+    post:
+      tags: [Aula]
+      summary: Rendir un cuestionario
+      description: |
+        Hay que responder cada pregunta una sola vez. La nota va de 0 a 100 y se aprueba con la nota
+        mínima de la lección. Hay 3 intentos y se guarda la mejor nota.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [respuestas]
+              properties:
+                respuestas:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [preguntaId, opcion]
+                    properties:
+                      preguntaId: { type: integer, minimum: 1 }
+                      opcion: { type: integer, minimum: 0, description: Posición de la opción elegida, empezando en 0 }
+            example:
+              respuestas:
+                - { preguntaId: 1, opcion: 1 }
+                - { preguntaId: 2, opcion: 1 }
+      responses:
+        '201':
+          description: Intento registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoIntento' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Bloqueada' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: No es un cuestionario, no tiene preguntas o ya se usaron los 3 intentos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: UNPROCESSABLE_ENTITY, message: Ya usaste los 3 intentos de este cuestionario, details: null } }
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
 
   responses:
     Validacion:
@@ -163,6 +383,25 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
           example: { error: { code: UNAUTHORIZED, message: Debes iniciar sesión, details: null } }
+    SinPermiso:
+      description: El rol no tiene permiso o el estudiante no está inscrito en el curso
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: FORBIDDEN, message: Debes estar inscrito en el curso, details: null } }
+    Bloqueada:
+      description: No está inscrito en el curso o la lección todavía está bloqueada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: LECCION_BLOQUEADA, message: Completa las lecciones anteriores para abrir esta, details: null } }
+    NoEncontrado:
+      description: No existe
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: { code: NOT_FOUND, message: El curso no existe o no está publicado, details: null } }
+
   schemas:
     Error:
       type: object
@@ -188,3 +427,161 @@ components:
         nombre: { type: string, example: Juan Pérez }
         email: { type: string, example: juan.perez@miniaula.com }
         rol: { type: string, enum: [estudiante, instructor] }
+
+    InstructorResumido:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string, example: Ana Pérez }
+
+    CursoCatalogo:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string, example: Node.js desde cero }
+        descripcion: { type: string }
+        categoria: { type: string, example: Programación }
+        nivel: { type: string, enum: [basico, intermedio, avanzado] }
+        estado: { type: string, enum: [publicado] }
+        instructorId: { type: integer }
+        creadoEn: { type: string, format: date-time }
+        cantidadLecciones: { type: integer, example: 5 }
+        instructor: { $ref: '#/components/schemas/InstructorResumido' }
+
+    Paginacion:
+      type: object
+      properties:
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 9 }
+        total: { type: integer, example: 3 }
+        totalPaginas: { type: integer, example: 1 }
+
+    DetalleCurso:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string }
+        descripcion: { type: string }
+        categoria: { type: string }
+        nivel: { type: string, enum: [basico, intermedio, avanzado] }
+        estado: { type: string, enum: [publicado] }
+        instructorId: { type: integer }
+        creadoEn: { type: string, format: date-time }
+        instructor: { $ref: '#/components/schemas/InstructorResumido' }
+        lecciones:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              titulo: { type: string }
+              tipo: { type: string, enum: [contenido, cuestionario] }
+              orden: { type: integer }
+
+    Inscripcion:
+      type: object
+      properties:
+        id: { type: integer }
+        estudianteId: { type: integer }
+        cursoId: { type: integer }
+        completado: { type: boolean, description: Pasa a true cuando completa todas las lecciones }
+        fechaInscripcion: { type: string, format: date-time }
+
+    InscripcionConAvance:
+      allOf:
+        - $ref: '#/components/schemas/Inscripcion'
+        - type: object
+          properties:
+            curso:
+              type: object
+              properties:
+                id: { type: integer }
+                titulo: { type: string }
+                categoria: { type: string }
+                nivel: { type: string, enum: [basico, intermedio, avanzado] }
+                estado: { type: string, enum: [borrador, publicado, archivado] }
+                instructor: { $ref: '#/components/schemas/InstructorResumido' }
+            completadas: { type: integer, example: 2 }
+            total: { type: integer, example: 5 }
+            porcentaje: { type: integer, example: 40 }
+
+    Progreso:
+      type: object
+      properties:
+        curso:
+          type: object
+          properties:
+            id: { type: integer }
+            titulo: { type: string }
+            estado: { type: string, enum: [borrador, publicado, archivado] }
+        lecciones:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              titulo: { type: string }
+              tipo: { type: string, enum: [contenido, cuestionario] }
+              orden: { type: integer }
+              notaMinima: { type: integer, nullable: true }
+              completada: { type: boolean }
+              bloqueada: { type: boolean }
+              intentos: { type: integer }
+              mejorNota: { type: integer, nullable: true }
+        completadas: { type: integer, example: 2 }
+        total: { type: integer, example: 5 }
+        porcentaje: { type: integer, example: 40 }
+
+    Pregunta:
+      type: object
+      description: Nunca incluye la respuesta correcta
+      properties:
+        id: { type: integer }
+        enunciado: { type: string, example: ¿Qué método HTTP se usa para crear un recurso? }
+        opciones:
+          type: array
+          items: { type: string }
+          example: [GET, POST, PUT, DELETE]
+        leccionId: { type: integer }
+
+    Leccion:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string }
+        tipo: { type: string, enum: [contenido, cuestionario] }
+        contenido: { type: string, nullable: true }
+        videoUrl: { type: string, nullable: true }
+        orden: { type: integer }
+        notaMinima: { type: integer, nullable: true }
+        cursoId: { type: integer }
+        completada: { type: boolean }
+        intentos: { type: integer }
+        mejorNota: { type: integer, nullable: true }
+        preguntas:
+          type: array
+          description: Solo en cuestionarios
+          items: { $ref: '#/components/schemas/Pregunta' }
+        intentosRestantes: { type: integer, description: Solo en cuestionarios }
+
+    AvanceLeccion:
+      type: object
+      properties:
+        id: { type: integer }
+        inscripcionId: { type: integer }
+        leccionId: { type: integer }
+        completada: { type: boolean }
+        intentos: { type: integer }
+        actualizadoEn: { type: string, format: date-time }
+
+    ResultadoIntento:
+      type: object
+      properties:
+        nota: { type: integer, example: 50 }
+        aprobado: { type: boolean }
+        notaMinima: { type: integer, example: 70 }
+        correctas: { type: integer, example: 1 }
+        total: { type: integer, example: 2 }
+        mejorNota: { type: integer, example: 50 }
+        intentos: { type: integer, example: 1 }
+        intentosRestantes: { type: integer, example: 2 }
