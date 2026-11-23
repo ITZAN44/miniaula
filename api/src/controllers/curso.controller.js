@@ -24,3 +24,8 @@ export const eliminarCurso = async (req, res) => {
   await cursoService.eliminarCurso(req.curso);
   res.status(204).send();
 };
+
+export const obtenerResumenCurso = async (req, res) => {
+  const resumen = await cursoService.obtenerResumenCurso(req.curso);
+  res.json(resumen);
+};
