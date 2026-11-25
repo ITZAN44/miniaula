@@ -21,6 +21,8 @@ tags:
   - name: Inscripciones
   - name: Aula
     description: Avance del estudiante, lecciones y cuestionarios
+  - name: Instructor
+    description: Gestión de cursos, lecciones, preguntas y métricas del curso
 
 paths:
   /health:
@@ -166,6 +168,32 @@ paths:
                   paginacion: { $ref: '#/components/schemas/Paginacion' }
         '400': { $ref: '#/components/responses/Validacion' }
 
+    post:
+      tags: [Instructor]
+      summary: Crear un curso en borrador
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, descripcion, categoria, nivel]
+              properties:
+                titulo: { type: string, maxLength: 150, example: JavaScript Moderno }
+                descripcion: { type: string, example: Curso práctico de ES6+, asincronía y módulos. }
+                categoria: { type: string, maxLength: 50, example: Programación }
+                nivel: { type: string, enum: [basico, intermedio, avanzado], example: basico }
+      responses:
+        '201':
+          description: Curso creado en borrador
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CursoInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+
   /cursos/categorias:
     get:
       tags: [Catálogo]
@@ -195,6 +223,153 @@ paths:
               schema: { $ref: '#/components/schemas/DetalleCurso' }
         '400': { $ref: '#/components/responses/Validacion' }
         '404': { $ref: '#/components/responses/NoEncontrado' }
+
+    put:
+      tags: [Instructor]
+      summary: Editar un curso propio
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Enviar al menos un campo para actualizar
+              properties:
+                titulo: { type: string, maxLength: 150 }
+                descripcion: { type: string }
+                categoria: { type: string, maxLength: 50 }
+                nivel: { type: string, enum: [basico, intermedio, avanzado] }
+      responses:
+        '200':
+          description: Curso actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CursoInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      tags: [Instructor]
+      summary: Eliminar un curso sin estudiantes inscritos
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Curso eliminado
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: El curso tiene estudiantes inscritos y solo se puede archivar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: UNPROCESSABLE_ENTITY, message: Un curso con estudiantes inscritos no se puede eliminar, solo archivar, details: null } }
+
+  /cursos/{id}/estado:
+    patch:
+      tags: [Instructor]
+      summary: Publicar o archivar un curso
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [publicado, archivado] }
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CursoInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: No se puede publicar un curso sin lecciones
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: UNPROCESSABLE_ENTITY, message: No se puede publicar un curso sin al menos una lección, details: null } }
+
+  /cursos/{id}/lecciones:
+    post:
+      tags: [Instructor]
+      summary: Crear una lección en un curso
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, tipo]
+              properties:
+                titulo: { type: string, maxLength: 150, example: Variables y Tipos }
+                tipo: { type: string, enum: [contenido, cuestionario] }
+                contenido: { type: string, nullable: true }
+                videoUrl: { type: string, nullable: true, example: https://www.youtube.com/watch?v=dQw4w9WgXcQ }
+                notaMinima: { type: integer, minimum: 1, maximum: 100, nullable: true, description: Obligatoria si tipo es cuestionario }
+      responses:
+        '201':
+          description: Lección creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeccionInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /cursos/{id}/lecciones/orden:
+    patch:
+      tags: [Instructor]
+      summary: Reordenar las lecciones de un curso
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orden]
+              properties:
+                orden:
+                  type: array
+                  minItems: 1
+                  items: { type: integer, minimum: 1 }
+                  example: [2, 1, 3]
+      responses:
+        '200':
+          description: Lecciones reordenadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/LeccionInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: La lista no coincide con las lecciones del curso
 
   /cursos/{id}/inscripcion:
     post:
@@ -278,6 +453,104 @@ paths:
         '403': { $ref: '#/components/responses/Bloqueada' }
         '404': { $ref: '#/components/responses/NoEncontrado' }
 
+    put:
+      tags: [Instructor]
+      summary: Editar una lección
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Enviar al menos un campo para actualizar
+              properties:
+                titulo: { type: string, maxLength: 150 }
+                contenido: { type: string, nullable: true }
+                videoUrl: { type: string, nullable: true }
+                notaMinima: { type: integer, minimum: 1, maximum: 100, nullable: true }
+      responses:
+        '200':
+          description: Lección actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeccionInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      tags: [Instructor]
+      summary: Eliminar una lección
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Lección eliminada
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /lecciones/{id}/preguntas:
+    get:
+      tags: [Instructor]
+      summary: Listar preguntas de un cuestionario
+      description: Incluye el índice de la respuesta correcta para el instructor dueño.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lista de preguntas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PreguntaInstructor' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: La lección no es un cuestionario
+
+    post:
+      tags: [Instructor]
+      summary: Agregar una pregunta a un cuestionario
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enunciado, opciones, indiceCorrecto]
+              properties:
+                enunciado: { type: string, example: ¿Cuál keyword declara una constante? }
+                opciones:
+                  type: array
+                  minItems: 2
+                  items: { type: string }
+                  example: [var, let, const]
+                indiceCorrecto: { type: integer, minimum: 0, example: 2 }
+      responses:
+        '201':
+          description: Pregunta creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PreguntaInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: La lección no es un cuestionario
+
   /lecciones/{id}/completar:
     post:
       tags: [Aula]
@@ -350,6 +623,87 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
               example: { error: { code: UNPROCESSABLE_ENTITY, message: Ya usaste los 3 intentos de este cuestionario, details: null } }
+
+  /preguntas/{id}:
+    put:
+      tags: [Instructor]
+      summary: Editar una pregunta
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Enviar al menos un campo para actualizar
+              properties:
+                enunciado: { type: string }
+                opciones:
+                  type: array
+                  minItems: 2
+                  items: { type: string }
+                indiceCorrecto: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Pregunta actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PreguntaInstructor' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      tags: [Instructor]
+      summary: Eliminar una pregunta
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Pregunta eliminada
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /instructor/cursos:
+    get:
+      tags: [Instructor]
+      summary: Listar cursos del instructor actual
+      description: Incluye cursos en borrador, publicados y archivados con sus lecciones.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Cursos del instructor
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CursoInstructor' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+
+  /instructor/cursos/{id}/resumen:
+    get:
+      tags: [Instructor]
+      summary: Ver resumen y métricas de un curso
+      description: Devuelve inscritos, progreso promedio, nota promedio, punto de detención y avance por lección.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Resumen del curso
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResumenCurso' }
+        '400': { $ref: '#/components/responses/Validacion' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/SinPermiso' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
 
 components:
   securitySchemes:
@@ -585,3 +939,77 @@ components:
         mejorNota: { type: integer, example: 50 }
         intentos: { type: integer, example: 1 }
         intentosRestantes: { type: integer, example: 2 }
+
+    LeccionInstructor:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string, example: 1. Introducción a Node.js }
+        tipo: { type: string, enum: [contenido, cuestionario] }
+        contenido: { type: string, nullable: true }
+        videoUrl: { type: string, nullable: true }
+        orden: { type: integer, example: 1 }
+        notaMinima: { type: integer, nullable: true, example: 70 }
+        cursoId: { type: integer }
+
+    CursoInstructor:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string, example: Node.js desde cero }
+        descripcion: { type: string }
+        categoria: { type: string, example: Programación }
+        nivel: { type: string, enum: [basico, intermedio, avanzado] }
+        estado: { type: string, enum: [borrador, publicado, archivado] }
+        instructorId: { type: integer }
+        creadoEn: { type: string, format: date-time }
+        lecciones:
+          type: array
+          items: { $ref: '#/components/schemas/LeccionInstructor' }
+
+    PreguntaInstructor:
+      type: object
+      properties:
+        id: { type: integer }
+        enunciado: { type: string, example: ¿Qué método HTTP se usa para crear un recurso? }
+        opciones:
+          type: array
+          items: { type: string }
+          example: [GET, POST, PUT, DELETE]
+        indiceCorrecto: { type: integer, example: 1 }
+        leccionId: { type: integer }
+
+    ResumenCurso:
+      type: object
+      properties:
+        curso:
+          type: object
+          properties:
+            id: { type: integer }
+            titulo: { type: string }
+            categoria: { type: string }
+            nivel: { type: string, enum: [basico, intermedio, avanzado] }
+            estado: { type: string, enum: [borrador, publicado, archivado] }
+        inscritos: { type: integer, example: 5 }
+        progresoPromedio: { type: integer, example: 60 }
+        notaPromedio: { type: integer, nullable: true, example: 85 }
+        leccionDondeSeDetienen:
+          nullable: true
+          type: object
+          properties:
+            id: { type: integer }
+            titulo: { type: string }
+            orden: { type: integer }
+            tipo: { type: string, enum: [contenido, cuestionario] }
+            estudiantesDetenidos: { type: integer }
+        lecciones:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              titulo: { type: string }
+              tipo: { type: string, enum: [contenido, cuestionario] }
+              orden: { type: integer }
+              completados: { type: integer }
+              detenidos: { type: integer }
