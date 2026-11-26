@@ -25,10 +25,10 @@ router.post('/:id/inscripcion', ...soloEstudiante, validate({ params: idParamSch
 router.get('/:id/progreso', ...soloEstudiante, validate({ params: idParamSchema }), inscritoEnCurso, progresoController.obtenerProgreso);
 
 router.post('/', ...soloInstructor, validate({ body: crearCursoSchema }), cursoController.crearCurso);
-router.put('/:id', ...soloInstructor, esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
-router.patch('/:id/estado', ...soloInstructor, esDuenioCurso, validate({ body: estadoCursoSchema }), cursoController.cambiarEstadoCurso);
-router.delete('/:id', ...soloInstructor, esDuenioCurso, cursoController.eliminarCurso);
-router.post('/:id/lecciones', ...soloInstructor, esDuenioCurso, validate({ body: crearLeccionSchema }), leccionController.crearLeccion);
-router.patch('/:id/lecciones/orden', ...soloInstructor, esDuenioCurso, validate({ body: reordenarLeccionesSchema }), leccionController.reordenarLecciones);
+router.put('/:id', ...soloInstructor, validate({ params: idParamSchema }), esDuenioCurso, validate({ body: editarCursoSchema }), cursoController.actualizarCurso);
+router.patch('/:id/estado', ...soloInstructor, validate({ params: idParamSchema }), esDuenioCurso, validate({ body: estadoCursoSchema }), cursoController.cambiarEstadoCurso);
+router.delete('/:id', ...soloInstructor, validate({ params: idParamSchema }), esDuenioCurso, cursoController.eliminarCurso);
+router.post('/:id/lecciones', ...soloInstructor, validate({ params: idParamSchema }), esDuenioCurso, validate({ body: crearLeccionSchema }), leccionController.crearLeccion);
+router.patch('/:id/lecciones/orden', ...soloInstructor, validate({ params: idParamSchema }), esDuenioCurso, validate({ body: reordenarLeccionesSchema }), leccionController.reordenarLecciones);
 
 export default router;
