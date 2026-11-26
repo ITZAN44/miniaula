@@ -550,6 +550,10 @@ paths:
         '404': { $ref: '#/components/responses/NoEncontrado' }
         '422':
           description: La lección no es un cuestionario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: { code: UNPROCESSABLE_ENTITY, message: Solo se pueden agregar preguntas a lecciones de tipo cuestionario, details: null } }
 
   /lecciones/{id}/completar:
     post:
