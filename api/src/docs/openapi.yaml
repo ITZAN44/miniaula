@@ -323,7 +323,7 @@ paths:
                 titulo: { type: string, maxLength: 150, example: Variables y Tipos }
                 tipo: { type: string, enum: [contenido, cuestionario] }
                 contenido: { type: string, nullable: true }
-                videoUrl: { type: string, nullable: true, example: https://www.youtube.com/watch?v=dQw4w9WgXcQ }
+                videoUrl: { type: string, format: uri, nullable: true, example: https://www.youtube.com/watch?v=dQw4w9WgXcQ }
                 notaMinima: { type: integer, minimum: 1, maximum: 100, nullable: true, description: Obligatoria si tipo es cuestionario }
       responses:
         '201':
@@ -340,6 +340,7 @@ paths:
     patch:
       tags: [Instructor]
       summary: Reordenar las lecciones de un curso
+      description: Devuelve 400 si hay IDs repetidos o si la lista no coincide exactamente con las lecciones del curso.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -368,8 +369,6 @@ paths:
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/SinPermiso' }
         '404': { $ref: '#/components/responses/NoEncontrado' }
-        '422':
-          description: La lista no coincide con las lecciones del curso
 
   /cursos/{id}/inscripcion:
     post:
@@ -469,14 +468,14 @@ paths:
               properties:
                 titulo: { type: string, maxLength: 150 }
                 contenido: { type: string, nullable: true }
-                videoUrl: { type: string, nullable: true }
+                videoUrl: { type: string, format: uri, nullable: true }
                 notaMinima: { type: integer, minimum: 1, maximum: 100, nullable: true }
       responses:
         '200':
           description: Lección actualizada
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/LeccionInstructor' }
+              schema: { $ref: '#/components/schemas/LeccionInstructorConCurso' }
         '400': { $ref: '#/components/responses/Validacion' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/SinPermiso' }
@@ -499,7 +498,7 @@ paths:
     get:
       tags: [Instructor]
       summary: Listar preguntas de un cuestionario
-      description: Incluye el índice de la respuesta correcta para el instructor dueño.
+      description: Incluye el índice de la respuesta correcta para el instructor dueño. Si la lección no es cuestionario devuelve `[]`.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -514,8 +513,6 @@ paths:
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/SinPermiso' }
         '404': { $ref: '#/components/responses/NoEncontrado' }
-        '422':
-          description: La lección no es un cuestionario
 
     post:
       tags: [Instructor]
@@ -682,7 +679,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { $ref: '#/components/schemas/CursoInstructor' }
+                items: { $ref: '#/components/schemas/CursoInstructorConLecciones' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/SinPermiso' }
 
@@ -944,13 +941,20 @@ components:
       type: object
       properties:
         id: { type: integer }
-        titulo: { type: string, example: 1. Introducción a Node.js }
+        titulo: { type: string, example: Introducción a Node.js }
         tipo: { type: string, enum: [contenido, cuestionario] }
         contenido: { type: string, nullable: true }
-        videoUrl: { type: string, nullable: true }
+        videoUrl: { type: string, format: uri, nullable: true }
         orden: { type: integer, example: 1 }
         notaMinima: { type: integer, nullable: true, example: 70 }
         cursoId: { type: integer }
+
+    LeccionInstructorConCurso:
+      allOf:
+        - $ref: '#/components/schemas/LeccionInstructor'
+        - type: object
+          properties:
+            curso: { $ref: '#/components/schemas/CursoInstructor' }
 
     CursoInstructor:
       type: object
@@ -963,9 +967,15 @@ components:
         estado: { type: string, enum: [borrador, publicado, archivado] }
         instructorId: { type: integer }
         creadoEn: { type: string, format: date-time }
-        lecciones:
-          type: array
-          items: { $ref: '#/components/schemas/LeccionInstructor' }
+
+    CursoInstructorConLecciones:
+      allOf:
+        - $ref: '#/components/schemas/CursoInstructor'
+        - type: object
+          properties:
+            lecciones:
+              type: array
+              items: { $ref: '#/components/schemas/LeccionInstructor' }
 
     PreguntaInstructor:
       type: object
