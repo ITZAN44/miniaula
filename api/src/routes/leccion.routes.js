@@ -20,9 +20,9 @@ router.get('/:id', ...estudianteInscrito, progresoController.obtenerLeccion);
 router.post('/:id/completar', ...estudianteInscrito, progresoController.completarLeccion);
 router.post('/:id/intentos', ...estudianteInscrito, validate({ body: intentoSchema }), progresoController.rendirCuestionario);
 
-router.put('/:id', ...soloInstructor, esDuenioLeccion, validate({ body: editarLeccionSchema }), leccionController.actualizarLeccion);
-router.delete('/:id', ...soloInstructor, esDuenioLeccion, leccionController.eliminarLeccion);
-router.get('/:id/preguntas', ...soloInstructor, esDuenioLeccion, preguntaController.listarPreguntasDeLeccion);
-router.post('/:id/preguntas', ...soloInstructor, esDuenioLeccion, validate({ body: crearPreguntaSchema }), preguntaController.crearPregunta);
+router.put('/:id', ...soloInstructor, validate({ params: idParamSchema }), esDuenioLeccion, validate({ body: editarLeccionSchema }), leccionController.actualizarLeccion);
+router.delete('/:id', ...soloInstructor, validate({ params: idParamSchema }), esDuenioLeccion, leccionController.eliminarLeccion);
+router.get('/:id/preguntas', ...soloInstructor, validate({ params: idParamSchema }), esDuenioLeccion, preguntaController.listarPreguntasDeLeccion);
+router.post('/:id/preguntas', ...soloInstructor, validate({ params: idParamSchema }), esDuenioLeccion, validate({ body: crearPreguntaSchema }), preguntaController.crearPregunta);
 
 export default router;
